@@ -1,98 +1,110 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { useState } from 'react';
+import { Button, StyleSheet, TextInput, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">歡迎使用咖啡沖煮日誌</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const colorScheme = useColorScheme();
+  const textColor = colorScheme === 'dark' ? '#fff' : '#000';
+  const [beans, setBeans] = useState([
+    { id: 1, origin: '衣索比亞', roaster: '某烘焙商' },
+    { id: 2, origin: '巴西', roaster: '某烘焙商' },
+  ]);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+  const [doseWeight, setDoseWeight] = useState('');
+  const [ratio, setRatio] = useState(15);
+  const [waterTemp, setWaterTemp] = useState('');
+
+  function addBean() {
+    const newBean = {
+      id: beans.length + 1,
+      origin: '肯亞',
+      roaster: '測試烘焙商',
+    };
+    setBeans([...beans, newBean]);
+  }
+
+  const doseWeightNumber = Number(doseWeight);
+  const waterWeight = doseWeightNumber > 0 ? doseWeightNumber * ratio : 0;
+
+  function submitBrewLog() {
+    console.log('送出的沖煮紀錄：', { doseWeight, ratio, waterWeight, waterTemp });
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">我的咖啡豆</ThemedText>
+
+        <Button title="新增測試豆子" onPress={addBean} />
+
+        {beans.map((bean) => (
+          <ThemedView key={bean.id} style={styles.beanCard}>
+            <ThemedText type="subtitle">{bean.origin}</ThemedText>
+            <ThemedText>{bean.roaster}</ThemedText>
+          </ThemedView>
+        ))}
+
+        <ThemedText type="title">新增沖煮紀錄</ThemedText>
+
+        <TextInput
+          style={[styles.input, { color: textColor }]}
+          placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
+          value={doseWeight}
+          onChangeText={setDoseWeight}
+          placeholder="粉重 (g)"
+          keyboardType="numeric"
+        />
+
+        <ThemedText>粉水比</ThemedText>
+        <Picker selectedValue={ratio} onValueChange={setRatio} style={{ color: textColor }}>
+          <Picker.Item label="1:12" value={12} />
+          <Picker.Item label="1:13" value={13} />
+          <Picker.Item label="1:14" value={14} />
+          <Picker.Item label="1:15" value={15} />
+          <Picker.Item label="1:16" value={16} />
+        </Picker>
+
+        <ThemedText type="subtitle">水重：{waterWeight} g</ThemedText>
+
+        <TextInput
+          style={[styles.input, { color: textColor }]}
+          placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
+          value={waterTemp}
+          onChangeText={setWaterTemp}
+          placeholder="水溫 (°C)"
+          keyboardType="numeric"
+        />
+
+        <Button title="送出沖煮紀錄" onPress={submitBrewLog} />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  safeArea: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  container: {
+    flex: 1,
+    padding: 16,
+    gap: 12,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  beanCard: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
   },
 });
