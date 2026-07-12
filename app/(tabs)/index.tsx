@@ -1,20 +1,21 @@
 import { Picker } from '@react-native-picker/picker';
 import { useState } from 'react';
-import { Button, StyleSheet, TextInput, useColorScheme } from 'react-native';
+import { Button, ScrollView, StyleSheet, TextInput, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const textColor = colorScheme === 'dark' ? '#fff' : '#000';
+
   const [beans, setBeans] = useState([
     { id: 1, origin: '衣索比亞', roaster: '某烘焙商' },
     { id: 2, origin: '巴西', roaster: '某烘焙商' },
   ]);
 
+  const [selectedBeanId, setSelectedBeanId] = useState(1);
   const [doseWeight, setDoseWeight] = useState('');
   const [ratio, setRatio] = useState(15);
   const [waterTemp, setWaterTemp] = useState('');
@@ -32,12 +33,19 @@ export default function HomeScreen() {
   const waterWeight = doseWeightNumber > 0 ? doseWeightNumber * ratio : 0;
 
   function submitBrewLog() {
-    console.log('送出的沖煮紀錄：', { doseWeight, ratio, waterWeight, waterTemp });
+    const selectedBean = beans.find((bean) => bean.id === selectedBeanId);
+    console.log('送出的沖煮紀錄：', {
+      bean: selectedBean,
+      doseWeight,
+      ratio,
+      waterWeight,
+      waterTemp,
+    });
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ThemedView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <ThemedText type="title">我的咖啡豆</ThemedText>
 
         <Button title="新增測試豆子" onPress={addBean} />
@@ -51,6 +59,17 @@ export default function HomeScreen() {
 
         <ThemedText type="title">新增沖煮紀錄</ThemedText>
 
+        <ThemedText>選擇豆子</ThemedText>
+        <Picker
+          selectedValue={selectedBeanId}
+          onValueChange={setSelectedBeanId}
+          style={{ color: textColor }}
+        >
+          {beans.map((bean) => (
+            <Picker.Item key={bean.id} label={bean.origin} value={bean.id} />
+          ))}
+        </Picker>
+
         <TextInput
           style={[styles.input, { color: textColor }]}
           placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
@@ -61,7 +80,11 @@ export default function HomeScreen() {
         />
 
         <ThemedText>粉水比</ThemedText>
-        <Picker selectedValue={ratio} onValueChange={setRatio} style={{ color: textColor }}>
+        <Picker
+          selectedValue={ratio}
+          onValueChange={setRatio}
+          style={{ color: textColor }}
+        >
           <Picker.Item label="1:12" value={12} />
           <Picker.Item label="1:13" value={13} />
           <Picker.Item label="1:14" value={14} />
@@ -81,7 +104,7 @@ export default function HomeScreen() {
         />
 
         <Button title="送出沖煮紀錄" onPress={submitBrewLog} />
-      </ThemedView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -91,7 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 16,
     gap: 12,
   },
